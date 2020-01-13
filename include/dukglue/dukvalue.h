@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
+#include "json.hpp"
 
 #include "dukexception.h"
 
@@ -361,6 +362,18 @@ public:
 		if (mType != STRING)
 			throw DukException() << "Expected string, got " << type_name();
 		return mString.data();
+	}
+	
+	nlohmann::json as_json() const {
+		if (mType != OBJECT)
+			throw DukException() << "Expected object, got " << type_name();
+			
+		duk_push_heap_stash(mContext);
+		duk_get_prop_string(mContext, -1, "dukglue_dukvalue_refs");
+		duk_get_prop_index(mContext, -1, mPOD.ref_array_idx);
+		auto json = nlohmann::json::parse(duk_json_encode(mContext, -1));
+		duk_pop_3(mContext);			
+		return json;
 	}
 
 	inline Type type() const {
