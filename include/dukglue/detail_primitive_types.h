@@ -25,6 +25,7 @@ namespace dukglue {
 					duk_int_t type_idx = duk_get_type(ctx, arg_idx); \
 					duk_error(ctx, DUK_RET_TYPE_ERROR, "Argument %d: expected " #TYPE ", got %s", arg_idx, detail::get_type_name(type_idx)); \
 				} \
+				return 0; \
 			} \
 			\
 			template<typename FullT> \
@@ -104,6 +105,7 @@ namespace dukglue {
 					// only DukException can be thrown by DukValue::copy_from_stack
 					duk_error(ctx, DUK_ERR_ERROR, e.what());
 				}
+				return DukValue();
 			}
 
 			template <typename FullT>
