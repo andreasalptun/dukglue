@@ -2,6 +2,8 @@
 
 #include "detail_method.h"
 
+typedef struct { bool b; } dukglue_noop;
+
 // const getter, setter
 template <typename Cls, typename RetT, typename ArgT>
 void dukglue_register_property(duk_context* ctx,
@@ -20,6 +22,16 @@ void dukglue_register_property(duk_context* ctx,
 	const char* name)
 {
 	dukglue_register_property<true, Cls, RetT, RetT>(ctx, getter, setter, name);
+}
+
+// const getter, no setter (defined as noop)
+template <typename Cls, typename RetT>
+void dukglue_register_property(duk_context* ctx,
+	RetT(Cls::*getter)() const,
+	dukglue_noop Cls::* setter,
+	const char* name)
+{
+	dukglue_register_property<true, Cls, RetT, RetT>(ctx, getter, nullptr, name);
 }
 
 // non-const getter, setter
@@ -50,6 +62,16 @@ void dukglue_register_property(duk_context* ctx,
 	const char* name)
 {
 	dukglue_register_property<false, Cls, ArgT, ArgT>(ctx, getter, setter, name);
+}
+
+// no getter (defined as noop), setter
+template <typename Cls, typename ArgT>
+void dukglue_register_property(duk_context* ctx,
+	dukglue_noop Cls::* getter,
+	void(Cls::*setter)(ArgT),
+	const char* name)
+{
+	dukglue_register_property<false, Cls, ArgT, ArgT>(ctx, nullptr, setter, name);
 }
 
 // no getter, no setter
