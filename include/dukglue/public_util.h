@@ -99,6 +99,13 @@ void dukglue_call_method(duk_context* ctx, const ObjT& obj, const char* method_n
 	duk_call_method(ctx, sizeof...(args));
 }
 
+// specialization when FuncT is std::string
+template <typename ObjT, typename... ArgTs>
+void dukglue_call_method(duk_context* ctx, const ObjT& obj, const std::string& method_name, ArgTs... args)
+{
+	dukglue_call_method(ctx, obj, method_name.c_str(), std::forward<ArgTs>(args)...);
+}
+
 namespace dukglue {
 namespace detail {
 
