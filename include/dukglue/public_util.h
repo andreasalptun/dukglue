@@ -58,6 +58,26 @@ void dukglue_read(duk_context* ctx, duk_idx_t arg_idx, RetT* out)
 // methods
 
 // leaves return value on stack
+template <typename ObjT, typename FuncT, typename... ArgTs>
+void dukglue_call_method(duk_context* ctx, const ObjT& obj, const FuncT& method, ArgTs... args)
+{
+	dukglue_push(ctx, method, obj);
+
+	if (!duk_is_function(ctx, -2)) {
+		duk_error(ctx, DUK_ERR_REFERENCE_ERROR, "Method is not a function");
+		return;
+	}
+
+	if (!duk_is_callable(ctx, -2)) {
+		duk_error(ctx, DUK_ERR_TYPE_ERROR, "Property is not callable");
+		return;
+	}
+
+	dukglue_push(ctx, args...);
+	duk_call_method(ctx, sizeof...(args));
+}
+
+// specialization when FuncT is const char*
 template <typename ObjT, typename... ArgTs>
 void dukglue_call_method(duk_context* ctx, const ObjT& obj, const char* method_name, ArgTs... args)
 {
@@ -82,36 +102,36 @@ void dukglue_call_method(duk_context* ctx, const ObjT& obj, const char* method_n
 namespace dukglue {
 namespace detail {
 
-template <typename RetT, typename ObjT, typename... ArgTs>
+template <typename RetT, typename ObjT, typename FuncT, typename... ArgTs>
 struct SafeMethodCallData {
 	const ObjT* obj;
-	const char* method_name;
+	const FuncT& method;
 	std::tuple<ArgTs...> args;
 	RetT* out;
 };
 
-template <typename ObjT, typename... ArgTs, size_t... Indexes>
-void call_method_safe_helper(duk_context* ctx, const ObjT& obj, const char* method_name, std::tuple<ArgTs...>& tup, index_tuple<Indexes...> indexes)
+template <typename ObjT, typename FuncT, typename... ArgTs, size_t... Indexes>
+void call_method_safe_helper(duk_context* ctx, const ObjT& obj, const FuncT& method, std::tuple<ArgTs...>& tup, index_tuple<Indexes...> indexes)
 {
-	dukglue_call_method(ctx, obj, method_name, std::forward<ArgTs>(std::get<Indexes>(tup))...);
+	dukglue_call_method(ctx, obj, method, std::forward<ArgTs>(std::get<Indexes>(tup))...);
 }
 
-template <typename RetT, typename ObjT, typename... ArgTs>
+template <typename RetT, typename ObjT, typename FuncT, typename... ArgTs>
 typename std::enable_if<std::is_void<RetT>::value, duk_idx_t>::type call_method_safe(duk_context* ctx, void* udata)
 {
-	typedef SafeMethodCallData<RetT, ObjT, ArgTs...> DataT;
+	typedef SafeMethodCallData<RetT, ObjT, FuncT, ArgTs...> DataT;
 	DataT* data = (DataT*) udata;
-	call_method_safe_helper(ctx, *(data->obj), data->method_name, data->args, typename make_indexes<ArgTs...>::type());
+	call_method_safe_helper(ctx, *(data->obj), data->method, data->args, typename make_indexes<ArgTs...>::type());
 	return 1;
 }
 
-template <typename RetT, typename ObjT, typename... ArgTs>
+template <typename RetT, typename ObjT, typename FuncT, typename... ArgTs>
 typename std::enable_if<!std::is_void<RetT>::value, duk_idx_t>::type call_method_safe(duk_context* ctx, void* udata)
 {
-	typedef SafeMethodCallData<RetT, ObjT, ArgTs...> DataT;
+	typedef SafeMethodCallData<RetT, ObjT, FuncT, ArgTs...> DataT;
 	DataT* data = (DataT*)udata;
 
-	call_method_safe_helper(ctx, *(data->obj), data->method_name, data->args, typename make_indexes<ArgTs...>::type());
+	call_method_safe_helper(ctx, *(data->obj), data->method, data->args, typename make_indexes<ArgTs...>::type());
 	dukglue_read(ctx, -1, data->out);
 	return 1;
 }
@@ -119,29 +139,29 @@ typename std::enable_if<!std::is_void<RetT>::value, duk_idx_t>::type call_method
 }
 }
 
-template <typename RetT, typename ObjT, typename... ArgTs>
-typename std::enable_if<std::is_void<RetT>::value, RetT>::type dukglue_pcall_method(duk_context* ctx, const ObjT& obj, const char* method_name, ArgTs... args)
+template <typename RetT, typename ObjT, typename FuncT, typename... ArgTs>
+typename std::enable_if<std::is_void<RetT>::value, RetT>::type dukglue_pcall_method(duk_context* ctx, const ObjT& obj, const FuncT& method, ArgTs... args)
 {
-	dukglue::detail::SafeMethodCallData<RetT, ObjT, ArgTs...> data {
-		&obj, method_name, std::tuple<ArgTs...>(args...), nullptr
+	dukglue::detail::SafeMethodCallData<RetT, ObjT, FuncT, ArgTs...> data {
+		&obj, method, std::tuple<ArgTs...>(args...), nullptr
 	};
 	
-	duk_idx_t rc = duk_safe_call(ctx, &dukglue::detail::call_method_safe<RetT, ObjT, ArgTs...>, (void*) &data, 0, 1);
+	duk_idx_t rc = duk_safe_call(ctx, &dukglue::detail::call_method_safe<RetT, ObjT, FuncT, ArgTs...>, (void*) &data, 0, 1);
 	if (rc != 0)
 		throw DukErrorException(ctx, rc);
 
 	duk_pop(ctx);  // remove result from stack
 }
 
-template <typename RetT, typename ObjT, typename... ArgTs>
-typename std::enable_if<!std::is_void<RetT>::value, RetT>::type dukglue_pcall_method(duk_context* ctx, const ObjT& obj, const char* method_name, ArgTs... args)
+template <typename RetT, typename ObjT, typename FuncT, typename... ArgTs>
+typename std::enable_if<!std::is_void<RetT>::value, RetT>::type dukglue_pcall_method(duk_context* ctx, const ObjT& obj, const FuncT& method, ArgTs... args)
 {
 	RetT out;
-	dukglue::detail::SafeMethodCallData<RetT, ObjT, ArgTs...> data {
-		&obj, method_name, std::tuple<ArgTs...>(args...), &out
+	dukglue::detail::SafeMethodCallData<RetT, ObjT, FuncT, ArgTs...> data {
+		&obj, method, std::tuple<ArgTs...>(args...), &out
 	};
 
-	duk_idx_t rc = duk_safe_call(ctx, &dukglue::detail::call_method_safe<RetT, ObjT, ArgTs...>, (void*) &data, 0, 1);
+	duk_idx_t rc = duk_safe_call(ctx, &dukglue::detail::call_method_safe<RetT, ObjT, FuncT, ArgTs...>, (void*) &data, 0, 1);
 	if (rc != 0)
 		throw DukErrorException(ctx, rc);
 
