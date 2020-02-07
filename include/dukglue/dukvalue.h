@@ -376,6 +376,32 @@ public:
 		return json;
 	}
 
+	template<typename ... Types>
+	std::tuple<Types...> as_tuple(std::initializer_list<std::string> propNames) {
+		if (mType != OBJECT)
+			throw DukException() << "Expected object, got " << type_name();
+		
+		// Push object [ object ]
+		push();
+		
+		// Push requested property values [ object, value1, value2, ... ]
+		duk_idx_t objectIdx = duk_normalize_index(mContext, -1);
+		for (auto name : propNames) {
+			duk_get_prop_string(mContext, objectIdx, name.c_str());
+		}
+
+		// Reverse stack [ ... , value2, value1, object ]
+		for(int i=0;i<(1+propNames.size())/2;i++) {
+			duk_swap(mContext, objectIdx+i, -i-1);
+		}
+		
+		// Pop object [ ... , value2, value1 ]
+		duk_pop(mContext);
+		
+		// Pop all property values from stack into tuple
+		return std::forward_as_tuple(take_from_stack<Types>(mContext)...);
+	}
+
 	inline Type type() const {
 		return mType;
 	}
@@ -482,6 +508,14 @@ public:
 	}
 
 private:
+	template<typename T>
+	T take_from_stack(duk_context* ctx) {
+		T result;
+		dukglue_read(ctx, -1, &result);
+		duk_pop(ctx);	
+		return result;
+	}
+	
 	// THIS IS COMPLETELY UNRELATED TO DETAIL_REFS.H.
 	// detail_refs.h stores a mapping of native object -> script object.
 	// This just stores arbitrary script objects (which likely have no native object backing them).
