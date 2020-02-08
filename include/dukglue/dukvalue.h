@@ -399,7 +399,7 @@ public:
 		duk_pop(mContext);
 		
 		// Pop all property values from stack into tuple
-		return std::forward_as_tuple(take_from_stack<Types>(mContext)...);
+		return std::tuple<Types...>(take_from_stack<Types>(mContext)...);
 	}
 
 	inline Type type() const {
