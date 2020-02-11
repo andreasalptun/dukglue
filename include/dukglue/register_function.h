@@ -33,3 +33,24 @@ void dukglue_register_function(duk_context* ctx, RetType(*funcToCall)(Ts...), co
 
 	duk_put_global_string(ctx, name);
 }
+
+// Register a member function on a registered object.
+template<typename RetType, typename... Ts>
+void dukglue_register_member_function(duk_context* ctx, RetType(*funcToCall)(Ts...), const char* className, const char* functionName)
+{
+	duk_c_function evalFunc = dukglue::detail::FuncInfoHolder<RetType, Ts...>::FuncRuntime::call_native_function;
+
+	duk_get_global_string(ctx, className); // [ object ]
+	if(!duk_is_object(ctx, -1)) {
+		throw DukException() << className << " is not an object";
+	}
+
+	duk_push_c_function(ctx, evalFunc, sizeof...(Ts)); // [ object func ]
+
+  static_assert(sizeof(RetType(*)(Ts...)) == sizeof(void*), "Function pointer and data pointer are different sizes");
+	duk_push_pointer(ctx, reinterpret_cast<void*>(funcToCall)); // [ object func void* ]
+	duk_put_prop_string(ctx, -2, "\xFF" "func_ptr"); // [ object func ]
+
+	duk_put_prop_string(ctx, -2, functionName);  // [ object ]
+	duk_pop(ctx);
+}
