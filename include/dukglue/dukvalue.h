@@ -280,6 +280,16 @@ public:
 		return take_from_stack(ctx);
 	}
 
+	static DukValue create(duk_context* ctx, std::nullptr_t&&) {
+		duk_push_null(ctx);
+		return take_from_stack(ctx);
+	}
+
+	static DukValue createUndefined(duk_context* ctx) {
+		duk_push_undefined(ctx);
+		return take_from_stack(ctx);
+	}
+
 	// push the value we hold onto the stack
 	inline void push() const {
 		duk_context* ctx = mContext;
