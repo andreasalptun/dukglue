@@ -273,6 +273,12 @@ public:
 		duk_remove(ctx, idx);
 		return val;
 	}
+	
+	template<typename T>
+	static DukValue create(duk_context* ctx, T&& value) {
+		dukglue_push(ctx, value);
+		return take_from_stack(ctx);
+	}
 
 	// push the value we hold onto the stack
 	inline void push() const {
