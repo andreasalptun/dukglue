@@ -453,6 +453,23 @@ public:
 		// Pop all property values from stack into tuple
 		return std::tuple<Types...>(take_value_from_stack<Types>(mContext)...);
 	}
+	
+	DukValue prop(const std::string& name) {
+		if (mType != OBJECT)
+			throw DukException() << "Expected object, got " << type_name();
+		
+		// Push object [ object ]
+		push();
+		
+		// Push property [ object value ]
+		duk_get_prop_string(mContext, -1, name.c_str());
+		
+		// Remove object [ value ]
+		duk_remove(mContext, -2);
+		
+		// Pop value and return it wrapped in a DukValue
+		return take_from_stack(mContext);
+	}
 
 	inline Type type() const {
 		return mType;
