@@ -435,7 +435,7 @@ public:
 		duk_pop(mContext);
 		
 		// Pop all property values from stack into tuple
-		return std::tuple<Types...>(take_from_stack<Types>(mContext)...);
+		return std::tuple<Types...>(take_value_from_stack<Types>(mContext)...);
 	}
 
 	inline Type type() const {
@@ -545,7 +545,7 @@ public:
 
 private:
 	template<typename T>
-	T take_from_stack(duk_context* ctx) const {
+	T take_value_from_stack(duk_context* ctx) const {
 		T result;
 		dukglue_read(ctx, -1, &result);
 		duk_pop(ctx);	
