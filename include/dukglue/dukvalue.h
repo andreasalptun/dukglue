@@ -315,6 +315,42 @@ public:
 		}
 	}
 
+	template<typename T, typename U=void>
+	struct as_helper;
+
+	template<typename T>
+	struct as_helper<T, typename std::enable_if<std::is_arithmetic<T>::value>::type> {
+		static T value(T def, Type type, const void* val, const std::string& str) {
+			return type == NUMBER ? (static_cast<const T>(*static_cast<const double*>(val))) : def;
+		}
+	};
+
+	template<>
+	struct as_helper<bool> {
+		static bool value(bool def, Type type, const void* val, const std::string& str) {
+			return type == BOOLEAN ? (static_cast<const bool>(*static_cast<const bool*>(val))) : def;
+		}
+	};
+	
+	template<>
+	struct as_helper<const char*> {
+		static const char* value(const char* def, Type type, const void* val, const std::string& str) {
+			return type == STRING ? str.c_str() : def;
+		}
+	};
+
+	template<>
+	struct as_helper<std::string> {
+		static std::string value(const std::string& def, Type type, const void* val, const std::string& str) {
+			return type == STRING ? str : def;
+		}
+	};
+	
+	template<typename T>
+	inline T as(T def) const {
+		return as_helper<T>::value(def, mType, &mPOD, mString);
+	}
+
 	// various (type-safe) getters
 	inline bool as_bool() const {
 		if (mType != BOOLEAN)
