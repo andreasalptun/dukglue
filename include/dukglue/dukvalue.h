@@ -377,7 +377,7 @@ public:
 	}
 
 	template<typename ... Types>
-	std::tuple<Types...> as_tuple(std::initializer_list<std::string> propNames) {
+	std::tuple<Types...> as_tuple(std::initializer_list<std::string> propNames) const {
 		if (mType != OBJECT)
 			throw DukException() << "Expected object, got " << type_name();
 		
@@ -509,7 +509,7 @@ public:
 
 private:
 	template<typename T>
-	T take_from_stack(duk_context* ctx) {
+	T take_from_stack(duk_context* ctx) const {
 		T result;
 		dukglue_read(ctx, -1, &result);
 		duk_pop(ctx);	
