@@ -274,6 +274,32 @@ public:
 		return val;
 	}
 	
+	template <typename ... Args>
+  static DukValue new_object(duk_context* ctx, const char* className, Args&& ... args)
+  {
+    duk_get_global_string(ctx, className); // [ className ]
+		
+    if(!duk_is_constructable(ctx, -1)) {
+			duk_pop(ctx);
+      throw DukException() << "Class " << className << " does not have a constructor";
+    }
+    dukglue_push(ctx, std::forward<Args>(args)...); // [ className args... ]
+    duk_ret_t res = duk_pnew(ctx, sizeof...(Args)); // [ newObject ]
+
+		if(res != DUK_ERR_NONE) {
+			const char* err = duk_safe_to_string(ctx, -1);
+			duk_pop(ctx);
+			throw DukException() << err;
+		}
+		
+    if(!duk_is_object(ctx, -1)) {
+			duk_pop(ctx);
+			throw DukException() << "Class " << className << " constructor did not return an object";
+    }
+
+    return DukValue::take_from_stack(ctx); // [ ]
+  }
+	
 	template<typename T>
 	static DukValue create(duk_context* ctx, T&& value) {
 		dukglue_push(ctx, value);
