@@ -499,7 +499,7 @@ public:
 		return std::tuple<Types...>(take_value_from_stack<Types>(mContext)...);
 	}
 	
-	DukValue prop(const std::string& name) {
+	DukValue prop(const std::string& name) const {
 		if (mType != OBJECT)
 			throw DukException() << "Expected object, got " << type_name();
 		
