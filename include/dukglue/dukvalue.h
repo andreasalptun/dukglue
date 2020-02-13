@@ -471,6 +471,7 @@ public:
 		duk_idx_t objectIdx = duk_normalize_index(mContext, -1);
 		for (auto name : propNames) {
 			duk_get_prop_string(mContext, objectIdx, name.c_str());
+			duk_require_type_mask(mContext, -1, ~DUK_TYPE_MASK_UNDEFINED);
 		}
 
 		// Reverse stack [ ... , value2, value1, object ]
