@@ -275,7 +275,7 @@ public:
 	}
 	
 	template <typename ... Args>
-  static DukValue new_object(duk_context* ctx, const char* className, Args&& ... args)
+  static DukValue construct_object(duk_context* ctx, const char* className, Args&& ... args)
   {
     duk_get_global_string(ctx, className); // [ className ]
 		
