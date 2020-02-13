@@ -306,6 +306,11 @@ public:
 		return take_from_stack(ctx);
 	}
 
+	static DukValue create(duk_context* ctx, const char* value) {
+		duk_push_string(ctx, value);
+		return take_from_stack(ctx);
+	}
+
 	static DukValue create(duk_context* ctx, std::nullptr_t) {
 		duk_push_null(ctx);
 		return take_from_stack(ctx);
