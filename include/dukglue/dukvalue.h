@@ -302,16 +302,16 @@ public:
 	
 	template<typename T>
 	static DukValue create(duk_context* ctx, T&& value) {
-		dukglue_push(ctx, value);
+		dukglue_push(ctx, std::forward<T>(value));
 		return take_from_stack(ctx);
 	}
 
-	static DukValue create(duk_context* ctx, std::nullptr_t&&) {
+	static DukValue create(duk_context* ctx, std::nullptr_t) {
 		duk_push_null(ctx);
 		return take_from_stack(ctx);
 	}
 
-	static DukValue createUndefined(duk_context* ctx) {
+	static DukValue create_undefined(duk_context* ctx) {
 		duk_push_undefined(ctx);
 		return take_from_stack(ctx);
 	}
