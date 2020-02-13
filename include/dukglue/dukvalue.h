@@ -458,6 +458,14 @@ public:
 		duk_pop_3(mContext);			
 		return json;
 	}
+	
+	std::map<std::string, DukValue> as_map() const {
+		if (mType != OBJECT)
+			throw DukException() << "Expected object, got " << type_name();		
+			
+		push();
+		return take_value_from_stack<std::map<std::string, DukValue>>(mContext);
+	}
 
 	template<typename ... Types>
 	std::tuple<Types...> as_tuple(std::initializer_list<std::string> propNames) const {
