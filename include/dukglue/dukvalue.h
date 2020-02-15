@@ -301,27 +301,32 @@ public:
   }
 	
 	template<typename T>
-	static DukValue create(duk_context* ctx, T&& value) {
+	static DukValue from(duk_context* ctx, T&& value) {
 		dukglue_push(ctx, std::forward<T>(value));
 		return take_from_stack(ctx);
 	}
 
-	static DukValue create(duk_context* ctx, const char* value) {
+	static DukValue from(duk_context* ctx, const char* value) {
 		duk_push_string(ctx, value);
 		return take_from_stack(ctx);
 	}
 
-	static DukValue create_pointer(duk_context* ctx, void* value) {
+	static DukValue from_this(duk_context* ctx) {
+		duk_push_this(ctx);
+		return take_from_stack(ctx);
+	}
+
+	static DukValue from_pointer(duk_context* ctx, void* value) {
 		duk_push_pointer(ctx, value);
 		return take_from_stack(ctx);
 	}
 
-	static DukValue create_null(duk_context* ctx) {
+	static DukValue from_null(duk_context* ctx) {
 		duk_push_null(ctx);
 		return take_from_stack(ctx);
 	}
 
-	static DukValue create_undefined(duk_context* ctx) {
+	static DukValue from_undefined(duk_context* ctx) {
 		duk_push_undefined(ctx);
 		return take_from_stack(ctx);
 	}
