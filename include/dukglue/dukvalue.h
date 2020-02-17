@@ -462,8 +462,9 @@ public:
 		if (mType != OBJECT)
 			throw DukException() << "Expected object, got " << type_name();
 		
-		push();
-		duk_get_prop_string(mContext, -1, "\xFF" "obj_ptr");  
+		push(); // [ object ]
+		duk_get_prop_string(mContext, -1, "\xFF" "obj_ptr"); // [ object ptr ]
+		
 		void* ptr = duk_require_pointer(mContext, -1);
 		duk_pop_2(mContext);
 		return static_cast<T*>(ptr);
@@ -472,21 +473,18 @@ public:
 	std::string as_json_string() const {
 		if (mType != OBJECT)
 			throw DukException() << "Expected object, got " << type_name();
-			
-		duk_push_heap_stash(mContext);
-		duk_get_prop_string(mContext, -1, "dukglue_dukvalue_refs");
-		duk_get_prop_index(mContext, -1, mPOD.ref_array_idx);
-		
-		std::string json(duk_json_encode(mContext, -1));
-		duk_pop_3(mContext);
+
+		push(); // [ object ]
+		std::string json(duk_json_encode(mContext, -1)); // [ json ]
+		duk_pop(mContext);
 		return json;
 	}
 	
 	std::map<std::string, DukValue> as_map() const {
 		if (mType != OBJECT)
 			throw DukException() << "Expected object, got " << type_name();		
-			
-		push();
+
+		push(); // [ object ]
 		return take_value_from_stack<std::map<std::string, DukValue>>(mContext);
 	}
 
