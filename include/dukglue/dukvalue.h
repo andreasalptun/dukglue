@@ -457,6 +457,18 @@ public:
 		return mString.data();
 	}
 	
+	template<typename T>
+	T* as_object_pointer() const {
+		if (mType != OBJECT)
+			throw DukException() << "Expected object, got " << type_name();
+		
+		push();
+		duk_get_prop_string(mContext, -1, "\xFF" "obj_ptr");  
+		void* ptr = duk_require_pointer(mContext, -1);
+		duk_pop_2(mContext);
+		return static_cast<T*>(ptr);
+	}
+	
 	std::string as_json_string() const {
 		if (mType != OBJECT)
 			throw DukException() << "Expected object, got " << type_name();
