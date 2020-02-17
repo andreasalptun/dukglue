@@ -246,7 +246,7 @@ namespace dukglue {
 					duk_error(ctx, DUK_ERR_TYPE_ERROR, "Argument %d: expected object.", arg_idx);
 
 				std::map<std::string, T> map;
-				duk_enum(ctx, -1, DUK_ENUM_OWN_PROPERTIES_ONLY);
+				duk_enum(ctx, arg_idx, DUK_ENUM_OWN_PROPERTIES_ONLY);
 				while (duk_next(ctx, -1, 1)) {
 					map[duk_safe_to_string(ctx, -2)] = DukType<typename Bare<T>::type>::template read<T>(ctx, -1);
 					duk_pop_2(ctx);
