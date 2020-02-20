@@ -384,6 +384,13 @@ public:
 		duk_pop_3(mContext);
 		return equal;
 	}
+	
+	bool isFunction() const {
+		push();
+		bool func = duk_is_function(mContext, -1);
+		duk_pop(mContext);
+		return func;
+	}
 
 	template<typename T, typename U=void>
 	struct as_helper;
