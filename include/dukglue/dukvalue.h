@@ -373,7 +373,7 @@ public:
 	}
 	
 	template<typename T>
-	bool isClass() const {
+	bool is_class() const {
 		if (mType != OBJECT)
 			return false;
 
@@ -385,7 +385,7 @@ public:
 		return equal;
 	}
 	
-	bool isFunction() const {
+	bool is_function() const {
 		push();
 		bool func = duk_is_function(mContext, -1);
 		duk_pop(mContext);
