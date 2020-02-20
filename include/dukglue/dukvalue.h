@@ -371,6 +371,19 @@ public:
 			throw DukException() << "DukValue.push() not implemented for type (" << type_name() << ")";
 		}
 	}
+	
+	template<typename T>
+	bool isClass() const {
+		if (mType != OBJECT)
+			return false;
+
+		push(); // [ obj ]
+		duk_get_prop_literal(mContext, -1, "\xFF" "class_id"); // [ obj this.typeid ]
+		duk_push_string(mContext, typeid(T).name()); // [ obj this.typeid T.typeid ]
+		bool equal = duk_strict_equals(mContext, -1, -2);
+		duk_pop_3(mContext);
+		return equal;
+	}
 
 	template<typename T, typename U=void>
 	struct as_helper;

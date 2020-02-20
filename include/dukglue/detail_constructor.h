@@ -23,6 +23,10 @@ namespace dukglue {
       // make the new script object keep the pointer to the new object instance
       duk_push_pointer(ctx, obj);
       duk_put_prop_string(ctx, -2, "\xFF" "obj_ptr");
+      
+      // set class id to identify object classes
+      duk_push_string(ctx, typeid(Cls).name());
+      duk_put_prop_string(ctx, -2, "\xFF" "class_id");
 
       // register it
 	  if (!managed)
