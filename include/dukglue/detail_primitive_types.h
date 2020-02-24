@@ -29,7 +29,7 @@ namespace dukglue {
 			} \
 			\
 			template<typename FullT> \
-			static void push(duk_context* ctx, TYPE value) { \
+			static void push(duk_context* ctx, const TYPE& value) { \
 				DUK_PUSH_FUNC(ctx, PUSH_VALUE); \
 			} \
 		};
