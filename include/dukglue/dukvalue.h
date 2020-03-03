@@ -552,6 +552,23 @@ public:
 		return take_from_stack(mContext);
 	}
 
+	DukValue index(int i) const {
+		if (mType != OBJECT)
+			throw DukException() << "Expected object, got " << type_name();
+		
+		// Push object [ object ]
+		push();
+		
+		// Push property [ object value ]
+		duk_get_prop_index(mContext, -1, i);
+		
+		// Remove object [ value ]
+		duk_remove(mContext, -2);
+		
+		// Pop value and return it wrapped in a DukValue
+		return take_from_stack(mContext);
+	}
+
 	inline Type type() const {
 		return mType;
 	}
