@@ -507,7 +507,15 @@ public:
 		push(); // [ object ]
 		return take_value_from_stack<std::map<std::string, DukValue>>(mContext);
 	}
+	
+	std::vector<DukValue> as_vector() const {
+		if (mType != OBJECT)
+			throw DukException() << "Expected object, got " << type_name();		
 
+		push(); // [ object ]
+		return take_value_from_stack<std::vector<DukValue>>(mContext);
+	}
+	
 	template<typename ... Types>
 	std::tuple<Types...> as_tuple(std::initializer_list<std::string> propNames) const {
 		if (mType != OBJECT)
@@ -567,6 +575,17 @@ public:
 		
 		// Pop value and return it wrapped in a DukValue
 		return take_from_stack(mContext);
+	}
+	
+	int array_length() const {
+		if (mType != OBJECT)
+			throw DukException() << "Expected object, got " << type_name();
+		
+		push();
+		duk_size_t len = duk_get_length(mContext, -1);
+		duk_pop(mContext);
+		
+		return (int)len;
 	}
 
 	inline Type type() const {
