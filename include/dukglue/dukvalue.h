@@ -392,6 +392,13 @@ public:
 		return func;
 	}
 
+	bool is_vector() const {
+		push();
+		bool array = duk_is_array(mContext, -1);
+		duk_pop(mContext);
+		return array;
+	}
+
 	template<typename T, typename U=void>
 	struct as_helper;
 
