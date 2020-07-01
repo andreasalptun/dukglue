@@ -3,6 +3,43 @@ Dukglue
 
 A C++ extension to the embeddable Javascript engine [Duktape](http://duktape.org/).
 
+
+### About this fork
+
+This is a fork of the original https://github.com/Aloshi/dukglue project, with improvements and bugfixes, such as:
+
+```
+DukValue::construct_object(ctx, ClassName, args...) // Create new object of class
+DukValue::from<T>(ctx, any-type) // Create a DukValue from any primitive type
+DukValue::from_pointer(ctx, pointer)
+DukValue::from_null(ctx)
+DukValue::from_undefined(ctx)
+
+dukValue.is_class<T>() // Check if DukValue is of class T 
+dukValue.is_function()
+dukValue.is_vector()
+
+dukValue.as<T>() // Get the typed value from the DukValue, i.e. myDukValue.as<float>();
+dukValue.as_object_pointer()
+dukValue.as_json_string()
+dukValue.as_map() // Returns an std::map<std::string, DukValue>
+dukValue.as_vector() // Returns an std::vector<DukValue>
+dukValue.as_tuple<Ts...>(props...) // Get a few named props from a js object, i.e. myDukValue.as_tuple<float,float,float>({"x","y","z"});
+
+dukValue.prop(name) // Get a propertyp from a js object, returns a new DukValue, can be nested.
+dukValue.index(index) // Get the value at a specified index in a DukValue array/vector
+dukValue.array_length()
+```
+
+* Call methods from DukValue using `dukglue_call_method`
+* Registering member functions on registered objects using `dukglue_register_member_function`
+* Support for `std::unordered_map`
+
+..and various bugfixes.
+
+---
+### Original readme continues...
+
 NOTE: The master branch is for Duktape 2.x. Check the `duktape_1.x` branch if you want to use the older Duktape 1.x.
 
 Dukglue offers:
