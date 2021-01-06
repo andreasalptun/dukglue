@@ -330,6 +330,22 @@ public:
 		duk_push_undefined(ctx);
 		return take_from_stack(ctx);
 	}
+  
+	static DukValue from_json(duk_context* ctx, const std::string& str)
+	{
+		DukValue v;
+		v.mContext = ctx;
+		v.mType = OBJECT;
+		duk_push_lstring(ctx, str.data(), str.size());
+		int rc = duk_safe_call(ctx, &json_decode_safe, NULL, 1, 1);
+		if (rc) {
+			throw DukErrorException(ctx, rc) << "Could not decode JSON";
+		} else {
+			v.mPOD.ref_array_idx = stash_ref(ctx, -1);
+			duk_pop(ctx);
+		}
+		return v;
+	}
 
 	// push the value we hold onto the stack
 	inline void push() const {
