@@ -425,27 +425,6 @@ public:
 		}
 	};
 
-	template<>
-	struct as_helper<bool> {
-		static bool value(bool def, Type type, const void* val, const std::string& str) {
-			return type == BOOLEAN ? (static_cast<const bool>(*static_cast<const bool*>(val))) : def;
-		}
-	};
-	
-	template<>
-	struct as_helper<const char*> {
-		static const char* value(const char* def, Type type, const void* val, const std::string& str) {
-			return type == STRING ? str.c_str() : def;
-		}
-	};
-
-	template<>
-	struct as_helper<std::string> {
-		static std::string value(const std::string& def, Type type, const void* val, const std::string& str) {
-			return type == STRING ? str : def;
-		}
-	};
-	
 	template<typename T>
 	inline T as(T def) const {
 		return as_helper<T>::value(def, mType, &mPOD, mString);
@@ -843,4 +822,25 @@ private:
 
 	std::string mString;  // if it's a string, we store it with std::string
 	int* mRefCount;  // if mType == OBJECT and we're sharing, this will point to our ref counter
+};
+
+template<>
+struct DukValue::as_helper<bool> {
+	static bool value(bool def, Type type, const void* val, const std::string& str) {
+		return type == BOOLEAN ? (static_cast<const bool>(*static_cast<const bool*>(val))) : def;
+	}
+};
+
+template<>
+struct DukValue::as_helper<const char*> {
+	static const char* value(const char* def, Type type, const void* val, const std::string& str) {
+		return type == STRING ? str.c_str() : def;
+	}
+};
+
+template<>
+struct DukValue::as_helper<std::string> {
+	static std::string value(const std::string& def, Type type, const void* val, const std::string& str) {
+		return type == STRING ? str : def;
+	}
 };
